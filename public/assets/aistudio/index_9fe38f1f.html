@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Divisional Project Tracker</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+
+<div id="login" hidden>
+  <h1>Divisional Project Tracker</h1>
+  <label for="lu">Sign in as</label>
+  <select id="lu"></select>
+  <label for="lp">PIN</label>
+  <input id="lp" type="password" inputmode="numeric" autocomplete="off">
+  <button class="p" id="lgo">Sign in</button>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <h1>Divisional Project Tracker</h1>
+    <span id="who"></span>
+    <button class="p" id="new">New project</button>
+    <button id="ref">Refresh</button>
+    <button id="out">Sign out</button>
+  </header>
+  <div class="bar" id="bar"></div>
+  <div id="note" hidden></div>
+  <div id="main"></div>
+</div>
+
+<dialog id="dlg"></dialog>
+<div id="toast"></div>
+
+<script src="js/config.js"></script>
+<script src="js/core.js"></script>
+<script src="js/data.js"></script>
+<script src="js/projects.js"></script>
+<script src="js/views.js"></script>
+<script src="js/dialogs.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --brand-primary: #0e5773;
+    --brand-primary-hover: #0a4359;
+    --brand-light: #f4f6f8;
+    --brand-border: #dfe4e8;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #1c2630;
+    background-color: #f8fafc;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Enforce tabular numerals in all data and tables */
+  .tabular-nums, table, th, td, [data-num] {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Custom sleek scrollbars for horizontal Gantt and tables */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Gantt grid background */
+.gantt-grid-bg {
+  background-image: repeating-linear-gradient(90deg, transparent 0 27px, #f1f5f9 27px 28px);
+}

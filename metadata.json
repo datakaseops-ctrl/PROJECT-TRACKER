@@ -1,0 +1,6 @@
+{
+  "name": "Divisional Project Tracker",
+  "description": "Multi-role divisional portfolio and task tracker with Gantt timeline and status approval workflows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
