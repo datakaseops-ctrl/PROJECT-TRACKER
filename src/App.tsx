@@ -113,7 +113,14 @@ export default function App() {
           const json = await res.json();
           if (json.ok && Array.isArray(json.data)) {
             applyTasksIfChanged(json.data);
+            return;
           }
+        }
+      } catch {}
+      try {
+        const direct = await fetchProjectTasks(config);
+        if (direct && Array.isArray(direct.tasks)) {
+          applyTasksIfChanged(direct.tasks);
         }
       } catch {}
     }, 4000);
@@ -122,7 +129,7 @@ export default function App() {
       if (eventSource) eventSource.close();
       if (pollFallbackInterval) clearInterval(pollFallbackInterval);
     };
-  }, [currentUser, applyTasksIfChanged]);
+  }, [currentUser, config, applyTasksIfChanged]);
 
   // Window Focus & Visibility Change Real-Time trigger
   useEffect(() => {
@@ -134,7 +141,14 @@ export default function App() {
           const json = await res.json();
           if (json.ok && Array.isArray(json.data)) {
             applyTasksIfChanged(json.data);
+            return;
           }
+        }
+      } catch {}
+      try {
+        const direct = await fetchProjectTasks(config);
+        if (direct && Array.isArray(direct.tasks)) {
+          applyTasksIfChanged(direct.tasks);
         }
       } catch {}
     };
