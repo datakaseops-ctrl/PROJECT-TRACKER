@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
-import { ProjectTask } from '../types';
+import React, { useState, useEffect } from 'react';
+import { ProjectTask, User, TaskAttachment } from '../types';
 import { DIVISIONS } from '../config/constants';
 import { getToday, addDays, toIsoDate } from '../utils/dateUtils';
+import { 
+  getStoredAttachments, 
+  persistAttachment 
+} from '../services/attachmentService';
+import { FileUploadSection } from './FileUploadSection';
 import { X, AlertCircle, Save } from 'lucide-react';
 
 interface ProjectModalProps {
   project: ProjectTask | null; // null if creating new
   initialDivision?: string;
+  currentUser?: User;
   onClose: () => void;
   onSave: (project: ProjectTask) => Promise<void>;
   onDelete?: (projectId: string) => Promise<void>;
@@ -15,6 +21,7 @@ interface ProjectModalProps {
 export const ProjectModal: React.FC<ProjectModalProps> = ({
   project,
   initialDivision,
+  currentUser = { name: 'Manager', role: 'manager', pin: '1234' },
   onClose,
   onSave,
   onDelete,
@@ -30,8 +37,25 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
   const [fromDate, setFromDate] = useState(project?.from || defaultStart);
   const [toDate, setToDate] = useState(project?.to || defaultEnd);
   const [managerRemark, setManagerRemark] = useState(project?.manager_remark || '');
+  const [attachments, setAttachments] = useState<TaskAttachment[]>(project?.attachments || []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Load stored attachments for project if any
+  useEffect(() => {
+    if (project?.id) {
+      getStoredAttachments(project.id).then(stored => {
+        if (stored.length > 0) {
+          setAttachments(prev => {
+            const map = new Map<string, TaskAttachment>();
+            prev.forEach(a => map.set(a.id, a));
+            stored.forEach(a => map.set(a.id, a));
+            return Array.from(map.values());
+          });
+        }
+      });
+    }
+  }, [project?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +86,12 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
         manager_remark: managerRemark.trim(),
         exec_reply: project?.exec_reply || '',
         updated: new Date().toISOString(),
+        attachments,
       };
+
+      for (const att of attachments) {
+        await persistAttachment(itemToSave.id, att);
+      }
 
       await onSave(itemToSave);
       onClose();
@@ -75,7 +104,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-      <div className="w-full max-w-lg bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden flex flex-col">
+      <div className="w-full max-w-xl bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <div>
@@ -95,7 +124,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 custom-scrollbar">
           {error && (
             <div className="p-3 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -160,7 +189,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Manager Project Brief & Notes (Optional)
+              Manager Project Brief &amp; Notes (Optional)
             </label>
             <textarea
               rows={3}
@@ -168,6 +197,15 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
               onChange={(e) => setManagerRemark(e.target.value)}
               placeholder="Strategic goals, compliance requirements, or expectations..."
               className="w-full px-3.5 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0e5773] outline-none"
+            />
+          </div>
+
+          {/* Attachments Section */}
+          <div className="pt-2 border-t border-slate-100">
+            <FileUploadSection
+              attachments={attachments}
+              onChange={setAttachments}
+              currentUser={currentUser}
             />
           </div>
 

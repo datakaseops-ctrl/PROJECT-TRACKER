@@ -10,6 +10,16 @@ export interface User {
 export type TaskStatus = 'Not Started' | 'In Progress' | 'Completed';
 export type DisplayStatus = TaskStatus | 'Overdue' | 'No tasks';
 
+export interface TaskAttachment {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  dataUrl: string;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
 export interface ProjectTask {
   id: string;
   division: string;
@@ -23,6 +33,7 @@ export interface ProjectTask {
   manager_remark: string;
   exec_reply: string;
   updated?: string;
+  attachments?: TaskAttachment[];
 }
 
 export interface ProjectStats {

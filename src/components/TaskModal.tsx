@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
-import { ProjectTask, User, TaskStatus } from '../types';
+import React, { useState, useEffect } from 'react';
+import { ProjectTask, User, TaskStatus, TaskAttachment } from '../types';
 import { TASK_STATUSES, DEFAULT_USERS } from '../config/constants';
-import { formatDateRange, getToday, toIsoDate } from '../utils/dateUtils';
+import { getToday, toIsoDate } from '../utils/dateUtils';
+import { 
+  getStoredAttachments, 
+  persistAttachment 
+} from '../services/attachmentService';
+import { FileUploadSection } from './FileUploadSection';
 import { 
   X, 
-  Calendar, 
   User as UserIcon, 
   Clock, 
-  MessageSquare, 
-  Check, 
   AlertCircle, 
   Trash2,
   Send
@@ -50,8 +52,25 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     task?.requested_status || ''
   );
   const [newRemark, setNewRemark] = useState('');
+  const [attachments, setAttachments] = useState<TaskAttachment[]>(task?.attachments || []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Load any stored attachments from IndexedDB / storage
+  useEffect(() => {
+    if (task?.id) {
+      getStoredAttachments(task.id).then(stored => {
+        if (stored.length > 0) {
+          setAttachments(prev => {
+            const map = new Map<string, TaskAttachment>();
+            prev.forEach(a => map.set(a.id, a));
+            stored.forEach(a => map.set(a.id, a));
+            return Array.from(map.values());
+          });
+        }
+      });
+    }
+  }, [task?.id]);
 
   const isAssignedToMe = task?.assignee === currentUser.name;
   const canEditOrUpdate = isManager || isAssignedToMe;
@@ -77,7 +96,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         status: requestedStatus as TaskStatus,
         requested_status: '',
         manager_remark: updatedRemarks,
+        attachments,
       };
+
+      for (const att of attachments) {
+        await persistAttachment(updatedTask.id, att);
+      }
 
       await onSave(updatedTask);
       onClose();
@@ -107,7 +131,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         to: toDate,
         requested_status: '',
         manager_remark: updatedRemarks,
+        attachments,
       };
+
+      for (const att of attachments) {
+        await persistAttachment(updatedTask.id, att);
+      }
 
       await onSave(updatedTask);
       onClose();
@@ -172,7 +201,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         manager_remark: updatedMgrRemark,
         exec_reply: updatedExecReply,
         updated: new Date().toISOString(),
+        attachments,
       };
+
+      for (const att of attachments) {
+        await persistAttachment(itemToSave.id, att);
+      }
 
       await onSave(itemToSave);
       onClose();
@@ -346,12 +380,22 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
+          {/* File Attachments Section */}
+          <div className="pt-2 border-t border-slate-100">
+            <FileUploadSection
+              attachments={attachments}
+              onChange={setAttachments}
+              currentUser={currentUser}
+              readOnly={!canEditOrUpdate}
+            />
+          </div>
+
           {/* Remarks Thread */}
-          <div className="space-y-3 pt-2">
+          <div className="space-y-3 pt-2 border-t border-slate-100">
             {task?.manager_remark && (
               <div>
                 <span className="text-xs font-semibold text-slate-700 block mb-1">
-                  Manager Instructions & Remarks Log
+                  Manager Instructions &amp; Remarks Log
                 </span>
                 <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 whitespace-pre-wrap leading-relaxed max-h-36 overflow-y-auto">
                   {task.manager_remark}
@@ -362,7 +406,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             {task?.exec_reply && (
               <div>
                 <span className="text-xs font-semibold text-slate-700 block mb-1">
-                  Executive Progress Updates & Logs
+                  Executive Progress Updates &amp; Logs
                 </span>
                 <div className="p-3 bg-blue-50/50 border border-blue-200/70 rounded-lg text-xs text-slate-800 whitespace-pre-wrap leading-relaxed max-h-36 overflow-y-auto">
                   {task.exec_reply}

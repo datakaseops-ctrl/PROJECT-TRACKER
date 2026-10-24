@@ -2,6 +2,7 @@ import React from 'react';
 import { ProjectTask, User, ProjectStats } from '../types';
 import { STATUS_COLORS, DISPLAY_STATUS_COLORS } from '../config/constants';
 import { formatDateRange, isTaskOverdue } from '../utils/dateUtils';
+import { triggerFileDownload } from '../services/attachmentService';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -12,7 +13,9 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   Clock, 
-  Layers 
+  Layers,
+  Paperclip,
+  Download
 } from 'lucide-react';
 
 interface ProjectDetailViewProps {
@@ -110,6 +113,29 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
             <p className="text-xs text-slate-800 whitespace-pre-wrap leading-relaxed">
               {project.manager_remark}
             </p>
+          </div>
+        )}
+
+        {/* Project Documents & Attachments */}
+        {project.attachments && project.attachments.length > 0 && (
+          <div className="mt-3.5 p-3 bg-slate-50/80 border border-slate-200 rounded-lg">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 mb-2">
+              <Paperclip className="w-3.5 h-3.5 text-slate-500" />
+              <span>Project Documents ({project.attachments.length})</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {project.attachments.map(att => (
+                <button
+                  key={att.id}
+                  onClick={() => triggerFileDownload(att)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs bg-white border border-slate-200 hover:border-slate-300 rounded shadow-2xs text-slate-700 hover:text-[#0e5773] transition-colors"
+                  title="Click to download"
+                >
+                  <Download className="w-3 h-3 text-slate-400" />
+                  <span className="truncate max-w-[200px] font-medium">{att.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -239,6 +265,15 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
                             <span className="w-1.5 h-1.5 rounded-full bg-[#0e5773]" title="Assigned to you" />
                           )}
                           <span>{task.title}</span>
+                          {task.attachments && task.attachments.length > 0 && (
+                            <span 
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-mono shrink-0" 
+                              title={`${task.attachments.length} attached file(s)`}
+                            >
+                              <Paperclip className="w-2.5 h-2.5 text-slate-500" />
+                              <span>{task.attachments.length}</span>
+                            </span>
+                          )}
                         </div>
                       </td>
 
